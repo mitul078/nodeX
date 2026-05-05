@@ -34,6 +34,7 @@ exports.signup = async (req, res) => {
             res,
             "USER IS CREATED",
             { username, email },
+            201
         )
 
 
@@ -54,7 +55,7 @@ exports.signin = async (req, res) => {
             return error(res, "USER IS NOT REGISTERED", 400)
         }
 
-        const isValidPass = await bcrypt.compare(password , user.password)
+        const isValidPass = await bcrypt.compare(password, user.password)
 
         if (!isValidPass) {
             return error(res, "CREDENTIALS ARE WRONG", 400)

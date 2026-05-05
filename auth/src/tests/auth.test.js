@@ -1,22 +1,17 @@
-// tests/auth.test.js
+
 const request = require("supertest")
 const app = require("../app")
 const mongoose = require("mongoose")
 
-// runs once before all tests
 beforeAll(async () => {
     await mongoose.connect(process.env.MONGO_URI_TEST)
 })
 
-// runs once after all tests
 afterAll(async () => {
-    await mongoose.connection.dropDatabase()  // clean test db
+    await mongoose.connection.dropDatabase()
     await mongoose.connection.close()
 })
 
-// -----------------------------------------------
-// SIGNUP
-// -----------------------------------------------
 describe("POST /api/v1/auth/signup", () => {
 
     it("should signup successfully", async () => {
@@ -70,10 +65,7 @@ describe("POST /api/v1/auth/signup", () => {
     })
 })
 
-// -----------------------------------------------
-// SIGNIN
-// -----------------------------------------------
-describe("POST /api/auth/signin", () => {
+describe("POST /api/v1/auth/signin", () => {
 
     it("should signin successfully and return accessToken", async () => {
         const res = await request(app)
@@ -112,9 +104,6 @@ describe("POST /api/auth/signin", () => {
     })
 })
 
-// -----------------------------------------------
-// GET ME
-// -----------------------------------------------
 describe("GET /api/v1/auth/me", () => {
 
     it("should return user if token is valid", async () => {
