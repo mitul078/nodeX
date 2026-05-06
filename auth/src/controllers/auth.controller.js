@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken")
 const success = require("../utils/success")
 const env = require("../config/env")
 const bcrypt = require("bcrypt")
+const { publishToQueue } = require("../config/rabbit")
 
 
 exports.signup = async (req, res) => {
@@ -28,6 +29,12 @@ exports.signup = async (req, res) => {
             username,
             password: hashPass,
             email
+        })
+
+        await publishToQueue("auth.user.created", {
+            userId: user._id,
+            username: user.username,
+            email: user.email
         })
 
         return success(
