@@ -1,10 +1,9 @@
 const Auth = require("../models/auth.model")
-const error = require("../utils/error")
 const jwt = require("jsonwebtoken")
-const success = require("../utils/success")
 const env = require("../config/env")
 const bcrypt = require("bcrypt")
 const { publishToQueue } = require("../config/rabbit")
+const { error, success } = require("@nodex/shared")
 
 
 exports.signup = async (req, res) => {

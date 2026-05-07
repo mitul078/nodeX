@@ -1,9 +1,9 @@
 const express = require("express")
 const router = express.Router()
 const { signup, signin, refreshToken, signout, getMe } = require("../controllers/auth.controller")
-const protect = require("../middlewares/auth.middleware")
+
 const { signinValidator, signupValidator } = require("../validators/auth.validator")
-const validate = require("../middlewares/validate.middleware")
+const { validate , protect } = require("@nodex/shared")
 
 router.post("/signin", signinValidator, validate, signin)
 router.post("/signup", signupValidator, validate, signup)

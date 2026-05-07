@@ -1,6 +1,5 @@
 const User = require("../models/user.model");
-const error = require("../utils/error");
-const success = require("../utils/success");
+const {error , success } = require("@nodex/shared")
 
 
 //protected
