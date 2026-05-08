@@ -8,7 +8,8 @@ const requiredVariables = [
     "AWS_ACCESS_KEY",
     "AWS_SECRET_KEY",
     "AWS_BUCKET",
-    "AWS_REGION"
+    "AWS_REGION",
+    "INTERNAL_SERVICE_JWT_SECRET"
 ]
 
 requiredVariables.forEach((value) => {
@@ -26,7 +27,8 @@ const env = {
     aws_access_key: process.env.AWS_ACCESS_KEY,
     aws_secret_key: process.env.AWS_SECRET_KEY,
     aws_region: process.env.AWS_REGION,
-    aws_bucket: process.env.AWS_BUCKET
+    aws_bucket: process.env.AWS_BUCKET,
+    internal_service_jwt_secret: process.env.INTERNAL_SERVICE_JWT_SECRET
 }
 
 module.exports = env

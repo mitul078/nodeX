@@ -64,7 +64,7 @@ exports.getMyGroups = async (req, res) => {
 }
 
 //protected
-exports.getGroup = async (req, res) => {
+exports.groupDetail = async (req, res) => {
     try {
 
         const { groupId } = req.params

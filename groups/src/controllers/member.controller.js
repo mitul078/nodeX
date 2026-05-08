@@ -1,9 +1,10 @@
 const Member = require("../models/member.model")
 const Group = require("../models/group.model")
-const { error } = require("@nodex/shared")
+const { error, success } = require("@nodex/shared")
+const { fetchUsers } = require("../services/user.service")
 
 
-//protected POST /:groupId/member/add
+//protected POST /:groupId/add
 exports.addMember = async (req, res) => {
     try {
 
@@ -22,6 +23,12 @@ exports.addMember = async (req, res) => {
 
         if (!isMember) return error(res, "YOU ARE NOT IN THIS GROUP", 403)
         if (isExists) return error(res, "USER IS ALREADY IN GROUP", 409)
+
+        const users = await fetchUsers([userId])
+        if (!users || users.length === 0) {
+            return error(res, "USER NOT FOUND", 404)
+        }
+
 
         const member = await Member.create({
             groupId,
@@ -71,19 +78,33 @@ exports.removeMember = async (req, res) => {
     }
 }
 
+//protected GET /:groupId/members
 exports.getMembers = async (req, res) => {
     try {
 
         const { groupId } = req.params
         const userId = req.user.userId
 
-        const members = await Member.find({ groupId })
-        const isAdmin = members[0].userId === userId
+        const isMember = await Member.findOne({ groupId, userId, isActive: true })
+        if (!isMember) return error(res, "YOU ARE NOT IN GROUP", 403)
 
-        if (isAdmin && members.length === 1) return success(res, "NO MEMBER IN THE GROUP", {}, 200)
+        const members = await Member.find({ groupId, isActive: true })
+        const userIds = members.map(m => m.userId)
 
-        //FOR USER DATA WHAT WE MAKE HTTP REQ OR CREATE QUEUE TO SEND DATA FROM USER SERVICE ?
-        return success(res, "MEMBER FETCHED", {}, 200)
+        const users = await fetchUsers(userIds)
+
+        const result = members.map(m => {
+            const user = users.find(u => u.userId === m.userId)
+            return {
+                userId: m.userId,
+                addedBy: m.addedBy,
+                joinedAt: m.createdAt,
+                username: user?.username || "",
+                avatarUrl: user?.avatarUrl || ""
+            }
+        })
+
+        return success(res, "USERS FETCHED", result, 200)
 
     } catch (err) {
         return error(res, err.message);
