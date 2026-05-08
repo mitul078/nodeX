@@ -7,5 +7,6 @@ app.use(morgan("dev"))
 
 app.use("/api/v1/groups" , require("./routes/group.route"))
 app.use("/api/v1/groups" , require("./routes/member.route"))
+app.use("/api/v1/groups" , require("./routes/internal.route"))
 
 module.exports = app
