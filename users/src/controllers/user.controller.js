@@ -1,5 +1,5 @@
 const User = require("../models/user.model");
-const {error , success } = require("@nodex/shared")
+const { error, success } = require("@nodex/shared")
 
 
 //protected
@@ -83,6 +83,24 @@ exports.updateProfile = async (req, res) => {
             phone: updateUser.phone,
             updatedAt: updateUser.updatedAt
         }, 200)
+
+    } catch (err) {
+        return error(res, err.message);
+    }
+}
+
+//internal
+exports.bulkUsers = async (req, res) => {
+    try {
+
+        const { userIds } = req.body
+        if (!userIds || userIds.length === 0) {
+            return success(res, "USERS FETCHED", [], 200)
+        }
+
+        const users = await User.find({ userId: { $in: userIds }, isActive: true }).select("username userId avatarUrl")
+
+        return success(res, "USERS FETCHED", users, 200)
 
     } catch (err) {
         return error(res, err.message);

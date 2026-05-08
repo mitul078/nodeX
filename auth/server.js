@@ -4,9 +4,15 @@ const env = require("./src/config/env")
 const { connectMQ } = require("./src/config/rabbit")
 
 
-connectDB()
-connectMQ()
+async function bootstrap() {
+    await connectDB()
+    await connectMQ()
+    app.listen(env.port, () => {
+        console.log(`NODEX-GROUPSERVICE RUN AT ${env.port}`)
+    })
 
-app.listen(env.port, () => {
-    console.log(`NODEX-AUTHSERVICE RUN AT ${env.port}`)
+}
+bootstrap().catch(err => {
+    console.log("FAILED TO START AUTH SERVICE ", err.message)
+    process.exit(1)
 })
