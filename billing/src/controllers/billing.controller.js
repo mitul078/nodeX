@@ -1,5 +1,5 @@
 const env = require("../config/env")
-const razorpay = require("../config/razorpay")
+const stripe = require("../config/stripe")
 const Plan = require("../models/plan.model")
 const Transaction = require("../models/transaction.model")
 const { PLAN } = require("../utils/plan")
@@ -9,7 +9,6 @@ exports.createOrder = async (request, reply) => {
     try {
 
         const userId = request.user.userId
-
         const { plan } = request.body
 
 
@@ -20,15 +19,15 @@ exports.createOrder = async (request, reply) => {
             })
         }
 
-        const order = await razorpay.orders.create({
+        const paymentIntent = await stripe.paymentIntents.create({
             amount: PLAN[plan].amount,
             currency: "INR",
-            receipt: `receipt_${userId}_${Date.now()}`
+            metadata: { userId, plan }
         })
 
         await Transaction.create({
             userId,
-            orderId: order.id,
+            orderId: paymentIntent.id,
             amount: PLAN[plan].amount,
             plan,
             status: "pending"
@@ -38,10 +37,9 @@ exports.createOrder = async (request, reply) => {
             success: true,
             message: "ORDER CREATED",
             data: {
-                orderId: order.id,
-                amount: order.amount,
-                currency: order.currency,
-                keyId: env.razorpay_api_key
+                amount: paymentIntent.amount,
+                currency: paymentIntent.currency,
+                clientSecret: paymentIntent.client_secret
             }
         })
 
@@ -59,24 +57,21 @@ exports.verifyPayment = async (request, reply) => {
     try {
 
         const { userId } = request.user
-        const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = request.body
+        const { paymentIntentId } = request.body
 
-        const body = razorpay_order_id + "|" + razorpay_payment_id
-        const expected = crypto.createHmac("sha256", env.razorpay_api_secret).update(body).digest("hex")
-
-        if (expected !== razorpay_signature) {
+        const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
+        if (paymentIntent.status !== "succeeded") {
             return reply.code(400).send({
                 success: false,
-                message: "INVALID PAYMENT SIGNATURE"
+                message: "PAYMENT NOT SUCCESSFUL"
             })
         }
 
-        const transaction = await Transaction.findOne({ orderId: razorpay_order_id, userId })
+        const transaction = await Transaction.findOne({ orderId: paymentIntentId, userId })
         if (!transaction) return reply.code(404).send({ success: false, message: "TRANSACTION NOT FOUND" })
 
-        transaction.paymentId = razorpay_payment_id
+        transaction.paymentId = paymentIntentId
         transaction.status = "success"
-
         await transaction.save()
 
         const expiresAt = new Date()
@@ -109,42 +104,62 @@ exports.verifyPayment = async (request, reply) => {
 exports.webhook = async (request, reply) => {
     try {
 
-        const signature = request.headers["x-razorpay-signature"]
+        const signature = request.headers["stripe-signature"]
         const body = JSON.stringify(request.body)
 
-        const expected = crypto.createHmac("sha256", env.razorpay_api_secret).update(body).digest("hex")
-        if (expected !== signature) {
-            return reply.code(400).send({
-                success: false,
-                message: "INVALID WEBHOOK SIGNATURE"
-            })
-        }
 
-        const event = request.body.event
-        if (event === "payment.captured") {
-            const payment = request.body.payload.payment.entity
-            const orderId = payment.order_id
 
-            const transaction = await Transaction.findOne({ orderId })
+        const event = stripe.webhooks.constructEvent(
+            request.rawBody,
+            signature,
+            env.stripe_webhook_secret
+        )
+
+        console.log("EVENT TYPE:", event.type)
+
+        if (event.type === "payment_intent.succeeded") {
+            const paymentIntent = event.data.object
+
+            console.log("PAYMENT INTENT:", paymentIntent.id)        // ← payment id
+            console.log("METADATA:", paymentIntent.metadata)
+
+
+            const { userId, plan } = paymentIntent.metadata
+
+            console.log("USERID:", userId)    // ← is this populated?
+            console.log("PLAN:", plan)
+
+            const transaction = await Transaction.findOne({ orderId: paymentIntent.id })
             if (!transaction || transaction.status === "success") {
-                return reply.code(200).send({ message: "received" })
+                return reply.code(200).send({ received: true })
             }
 
-            transaction.paymentId = payment.id
+            console.log("TRANSACTION:", transaction)
+
+
+            transaction.paymentId = paymentIntent.id
             transaction.status = "success"
             await transaction.save()
+
+            console.log("TRANSACTION SAVED")   //
 
             const expiresAt = new Date()
             expiresAt.setDate(expiresAt.getDate() + 30)
 
-            const plan = await Plan.findOneAndUpdate({ userId: transaction.userId }, { plan: transaction.plan, expiresAt, isActive: true }, { upsert: true })
+            await Plan.findOneAndUpdate(
+                { userId },
+                { plan, expiresAt, isActive: true },
+                { upsert: true }
+            )
 
+            console.log("PLAN UPDATED")
         }
-
 
         return reply.code(200).send({ received: true })
 
+
     } catch (error) {
+        console.error("WEBHOOK ERROR:", err.message)
         return reply.code(500).send({
             success: false,
             message: error.message
@@ -196,7 +211,7 @@ exports.getTransaction = async (request, reply) => {
             data: transactions.map(t => ({
                 orderId: t.orderId,
                 paymentId: t.paymentId,
-                amount: t.amount,
+                amount: t.amount / 100,
                 plan: t.plan,
                 status: t.status,
                 createdAt: t.createdAt

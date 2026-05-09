@@ -6,8 +6,8 @@ const requiredVariables = [
     "MONGO_URI",
     "INTERNAL_SERVICE_JWT_SECRET",
     "RABBITMQ_URL",
-    "RAZORPAY_API_KEY",
-    "RAZORPAY_API_SECRET"
+    "STRIPE_WEBHOOK_SECRET",
+    "STRIPE_SECRET_KEY"
 ]
 
 requiredVariables.forEach(v => {
@@ -24,8 +24,8 @@ const env = {
     jwt_secret: process.env.JWT_SECRET,
     internal_service_jwt_secret: process.env.INTERNAL_SERVICE_JWT_SECRET,
     rabbitmq_url: process.env.RABBITMQ_URL,
-    razorpay_api_key: process.env.RAZORPAY_API_KEY,
-    razorpay_api_secret: process.env.RAZORPAY_API_SECRET,
+    stripe_secret_key:process.env.STRIPE_SECRET_KEY,
+    stripe_webhook_secret:process.env.STRIPE_WEBHOOK_SECRET
 
 }
 
