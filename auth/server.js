@@ -8,7 +8,7 @@ async function bootstrap() {
     await connectDB()
     await connectMQ()
     app.listen(env.port, () => {
-        console.log(`NODEX-GROUPSERVICE RUN AT ${env.port}`)
+        console.log(`NODEX-AUTHSERVICE RUN AT ${env.port}`)
     })
 
 }
