@@ -1,7 +1,7 @@
 const Member = require("../models/member.model")
 const Group = require("../models/group.model")
 const { error, success } = require("@nodex/shared")
-const { fetchUsers } = require("../services/user.service")
+const { fetchUsers, isUserExists } = require("../services/user.service")
 
 
 //protected POST /:groupId/add
@@ -24,10 +24,8 @@ exports.addMember = async (req, res) => {
         if (!isMember) return error(res, "YOU ARE NOT IN THIS GROUP", 403)
         if (isExists) return error(res, "USER IS ALREADY IN GROUP", 409)
 
-        const users = await fetchUsers([userId])
-        if (!users || users.length === 0) {
-            return error(res, "USER NOT FOUND", 404)
-        }
+        const exists = await isUserExists(userId)
+        if (!exists) return error(res, "USER NOT FOUND", 404)
 
 
         const member = await Member.create({

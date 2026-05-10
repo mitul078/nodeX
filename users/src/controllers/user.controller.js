@@ -106,3 +106,18 @@ exports.bulkUsers = async (req, res) => {
         return error(res, err.message);
     }
 }
+
+exports.userExists = async (req, res) => {
+    try {
+
+        const { userId } = req.params
+        const user = await User.exists({ userId, isActive: true })
+
+        return res.json({ exists: !!user })
+
+
+    } catch (error) {
+        return error(res, err.message)
+
+    }
+}

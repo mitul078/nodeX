@@ -1,4 +1,5 @@
 const env = require("../config/env")
+const { publishToQueue } = require("../config/rabbit")
 const stripe = require("../config/stripe")
 const Plan = require("../models/plan.model")
 const Transaction = require("../models/transaction.model")
@@ -77,11 +78,17 @@ exports.verifyPayment = async (request, reply) => {
         const expiresAt = new Date()
         expiresAt.setDate(expiresAt.getDate() + 30)
 
+
         await Plan.findOneAndUpdate({ userId }, {
             plan: transaction.plan,
             isActive: true,
             expiresAt
         }, { upsert: true })
+        
+        await publishToQueue("plan.upgrade", {
+            userId,
+            plan: transaction.plan
+        })
 
         return reply.code(200).send({
             success: true,

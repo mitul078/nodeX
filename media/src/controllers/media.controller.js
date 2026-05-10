@@ -1,3 +1,4 @@
+const { plans } = require("@nodex/shared");
 const Media = require("../models/media.model");
 const { checkMember } = require("../services/group.service");
 const { uploadToS3, deleteFromS3 } = require("../services/storage.service");
@@ -9,6 +10,7 @@ exports.uploadMedia = async (request, reply) => {
     try {
 
         const userId = request.user.userId
+        const userPlan = request.user.plan || "free"
         const { groupId } = request.params
 
         const valid = await checkMember(userId, groupId)
@@ -25,12 +27,47 @@ exports.uploadMedia = async (request, reply) => {
         const fileName = data.filename
         const mimeType = data.mimetype
         const fileSize = buffer.length
-
         const fileType = getFileType(mimeType)
+
+        const planLimits = plans[userPlan]
         if (!fileType) return reply.code(400).send({
             success: false,
             message: "FILE TYPE NOT ALLOWED"
         })
+
+        if (!planLimits.allowedTypes.includes(fileType)) {
+            return reply.code(403).send({
+                success: false,
+                message: `${fileType.toUpperCase()} FILES NOT ALLOWED ON ${userPlan.toUpperCase()} PLAN`,
+                upgrade: true
+            })
+        }
+
+        const fileSizeMB = fileSize / (1024 * 1024)
+        if (fileSizeMB > planLimits.maxFileSizeMB) {
+            return reply.code(403).send({
+                success: false,
+                message: `FILE SIZE EXCEEDS ${planLimits.maxFileSizeMB}MB LIMIT ON ${userPlan.toUpperCase()} PLAN`,
+                current: `${fileSizeMB.toFixed(2)}MB`,
+                limit: `${planLimits.maxFileSizeMB}MB`,
+                upgrade: true
+            })
+        }
+
+        const groupMedia = await Media.find({ groupId, isActive: true })
+        const usedStorage = groupMedia.reduce((total, m) => total + m.fileSize, 0)
+        const usedMB = usedStorage / (1024 * 1024)
+
+        if (usedMB >= planLimits.maxStorageMB) {
+            return reply.code(403).send({
+                success: false,
+                message: `STORAGE LIMIT REACHED ON ${userPlan.toUpperCase()} PLAN`,
+                current: `${usedMB.toFixed(2)}MB`,
+                limit: `${planLimits.maxStorageMB}MB`,
+                upgrade: true
+            })
+        }
+
 
         const fileKey = `groups/${groupId}/media/${fileType}/${Date.now()}-${fileName}`
 

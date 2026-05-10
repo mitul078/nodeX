@@ -70,7 +70,8 @@ exports.signin = async (req, res) => {
         const refreshToken = jwt.sign({
             userId: user._id,
             email: user.email,
-            username: user.username
+            username: user.username,
+            plan: user.plan || "free"
         }, env.jwt_secret, { expiresIn: "7d" })
 
         res.cookie("refreshToken", refreshToken, {
@@ -83,7 +84,8 @@ exports.signin = async (req, res) => {
         const accessToken = jwt.sign({
             userId: user._id,
             email: user.email,
-            username: user.username
+            username: user.username,
+            plan: user.plan || "free"
         }, env.jwt_secret, { expiresIn: "15m" })
 
         return success(
@@ -113,7 +115,8 @@ exports.refreshToken = async (req, res) => {
         const newRefreshToken = jwt.sign({
             userId: decoded.userId,
             email: decoded.email,
-            username: decoded.username
+            username: decoded.username,
+            plan: isUserExists.plan || "free"
         }, env.jwt_secret, { expiresIn: "7d" })
 
         res.cookie("refreshToken", newRefreshToken, {
@@ -126,7 +129,8 @@ exports.refreshToken = async (req, res) => {
         const accessToken = jwt.sign({
             userId: decoded.userId,
             email: decoded.email,
-            username: decoded.username
+            username: decoded.username,
+            plan: isUserExists.plan || "free"
         }, env.jwt_secret, { expiresIn: "15m" })
 
 

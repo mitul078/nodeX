@@ -11,8 +11,8 @@ async function bootstrap() {
 
     startPlanExpiryJob()
 
-    await fastify.listen({ port: env.port , host:"0.0.0.0" })
-        .then(() => console.log("BILLINGSERVICE SERVER RUN AT ", env.port))
+    await fastify.listen({ port: env.port, host: "0.0.0.0" })
+        .then(() => console.log("NODEX-BILLINGSERVICE SERVER RUN AT ", env.port))
 }
 
 bootstrap().catch((err) => {

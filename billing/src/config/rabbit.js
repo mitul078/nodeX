@@ -10,12 +10,12 @@ async function connectRabbitMQ() {
     try {
 
         connection = await amqplib.connect(env.rabbitmq_url)
-        console.log("NODEX-MEDIASERVICE RABBITMQ CONNECTED")
+        console.log("NODEX-BILLINGSERVICE RABBITMQ CONNECTED")
 
         channel = await connection.createChannel()
 
     } catch (error) {
-        console.log("NODEX-MEDIASERVICE RABBITMQ ERROR", error)
+        console.log("NODEX-BILLINGSERVICE RABBITMQ ERROR", error)
     }
 }
 

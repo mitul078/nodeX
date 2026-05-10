@@ -1,7 +1,9 @@
 module.exports = {
-    error: require("./utils/error"),
-    success: require("./utils/success"),
-    validate: require("./middlewares/validate.middleware"),
-    protect: require("./middlewares/auth.middleware"),
-    internalOnly: require("./middlewares/internal.middleware"),
+    error: require("./src/utils/error"),
+    success: require("./src/utils/success"),
+    validate: require("./src/middlewares/validate.middleware"),
+    protect: require("./src/middlewares/auth.middleware"),
+    internalOnly: require("./src/middlewares/internal.middleware"),
+    limit: require("./src/middlewares/limit.middleware"),
+    plans: require("./src/config/plans")
 }
