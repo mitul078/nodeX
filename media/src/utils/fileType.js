@@ -1,4 +1,4 @@
-export function getFileType(mimeType) {
+module.export = function getFileType(mimeType) {
     if (mimeType.startsWith("image/")) return "image"
     if (mimeType.startsWith("video/")) return "video"
     if (mimeType.startsWith("audio/")) return "audio"
@@ -9,5 +9,4 @@ export function getFileType(mimeType) {
     if (mimeType.includes("zip")) return zip
 
     return null
-
 }

@@ -9,13 +9,13 @@ fastify.register(proxy, {
 })
 
 fastify.register(proxy, {
-    upstream: env.users_service_url,
+    upstream: env.user_service_url,
     prefix: "/api/v1/users",
     rewritePrefix: "/api/v1/users"
 })
 
 fastify.register(proxy, {
-    upstream: env.groups_service_url,
+    upstream: env.group_service_url,
     prefix: "/api/v1/groups",
     rewritePrefix: "/api/v1/groups"
 })
