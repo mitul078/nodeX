@@ -21,7 +21,7 @@ exports.fetchUsers = async (userIds) => {
 exports.isUserExists = async (userId) => {
     try {
 
-        const res = await axios.get(`${env.user_service_url}/internal/${userId}/exists`, {
+        const res = await axios.get(`${env.user_service_url}/api/v1/users/internal/${userId}/exists`, {
             headers: {
                 "x-internal-secret": env.internal_service_jwt_secret
             }

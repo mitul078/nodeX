@@ -1,4 +1,4 @@
-const fastify = require("fastify")({ logger: true })
+const fastify = require("fastify")()
 const proxy = require("@fastify/http-proxy")
 const env = require("./config/env")
 

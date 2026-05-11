@@ -1,0 +1,86 @@
+services:
+  auth:
+    build:
+      context: .
+      dockerfile: ./auth/Dockerfile
+    container_name: nodex-auth
+    ports:
+      - "4001:4001"
+    env_file:
+      - ./auth/.env
+    networks:
+      - nodex-network
+
+  users:
+    build:
+      context: .
+      dockerfile: ./users/Dockerfile
+    container_name: nodex-users
+    ports:
+      - "4002:4002"
+    env_file:
+      - ./users/.env
+    networks:
+      - nodex-network
+
+  groups:
+    build:
+      context: .
+      dockerfile: ./groups/Dockerfile
+    container_name: nodex-groups
+    ports:
+      - "4003:4003"
+    env_file:
+      - ./groups/.env
+    depends_on:
+      - users
+    networks:
+      - nodex-network
+
+  media:
+    build:
+      context: .
+      dockerfile: ./media/Dockerfile
+    container_name: nodex-media
+    ports:
+      - "4004:4004"
+    env_file:
+      - ./media/.env
+    depends_on:
+      - groups
+    networks:
+      - nodex-network
+
+  billing:
+    build:
+      context: .
+      dockerfile: ./billing/Dockerfile
+    container_name: nodex-billing
+    ports:
+      - "4005:4005"
+    env_file:
+      - ./billing/.env
+    networks:
+      - nodex-network
+
+  gateway:
+    build:
+      context: .
+      dockerfile: ./gateway/Dockerfile
+    container_name: nodex-gateway
+    ports:
+      - "4000:4000"
+    env_file:
+      - ./gateway/.env
+    depends_on:
+      - auth
+      - users
+      - groups
+      - media
+      - billing
+    networks:
+      - nodex-network
+
+networks:
+  nodex-network:
+    driver: bridge

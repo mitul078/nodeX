@@ -9,7 +9,7 @@ async function bootstrap() {
     await connectRabbitMQ()
 
     await fastify.listen({ port: env.port })
-        .then(() => console.log("MEDIASERVICE SERVER RUN AT ", env.port))
+        .then(() => console.log("NODEX-MEDIASERVICE SERVER RUN AT ", env.port))
 }
 
 bootstrap().catch((err) => {
